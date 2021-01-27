@@ -74,6 +74,7 @@ final class Basket
     public function getCalculatedBasket(BasketDataType $basket): EshopBasketModel
     {
         $basketModel = $this->getBasket($basket);
+        $basketModel->enableSaveToDataBase(false);
         $basketModel->calculateBasket();
 
         return $basketModel;

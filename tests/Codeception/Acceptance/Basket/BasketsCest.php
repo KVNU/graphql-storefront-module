@@ -84,10 +84,10 @@ final class BasketsCest extends BaseCest
 
         $I->logout();
         $response = $this->basketsQuery($I, self::LAST_NAME);
-        $I->seeResponseCodeIs(HttpCode::OK);
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
 
         $baskets = $response['data']['baskets'];
-        $I->assertSame(6, count($baskets));
+        $I->assertSame(8, count($baskets));
     }
 
     public function testBasketsCosts(AcceptanceTester $I): void
@@ -167,6 +167,60 @@ final class BasketsCest extends BaseCest
                 ],
             ],
         ], $result['data']['baskets']);
+    }
+
+    public function testBasketsInvalidProduct(AcceptanceTester $I): void
+    {
+        $I->sendGQLQuery(
+            'query {
+                baskets(owner: "basketuser@oxid-esales.com") {
+                    id
+                    items {
+                        id
+                        product {
+                            id
+                        }
+                    }
+                }
+            }'
+        );
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(1, $result['errors']);
+        $I->assertSame($result['errors'][0]['message'], 'Product was not found by id: _test_invalid_product_for_basket');
+        $I->assertCount(2, $result['data']['baskets']);
+        $I->assertSame(
+            $result['data']['baskets'],
+            [
+                [
+                    'id'    => '_test_basket_invalid',
+                    'items' => [
+                        [
+                            'id'      => '_test_basket_1_invalid_product',
+                            'product' => null,
+                        ], [
+                            'id'      => '_test_basket_1_valid_product',
+                            'product' => [
+                                'id' => '_test_product_for_basket',
+                            ],
+                        ],
+                    ],
+                ], [
+                    'id'    => '_test_basket_valid',
+                    'items' => [
+                        [
+                            'id'      => '_test_basket_2_valid_product',
+                            'product' => [
+                                'id' => 'f4f73033cf5045525644042325355732',
+                            ],
+                        ],
+                    ],
+                ],
+            ]
+        );
     }
 
     private function basketsQuery(AcceptanceTester $I, string $owner): array

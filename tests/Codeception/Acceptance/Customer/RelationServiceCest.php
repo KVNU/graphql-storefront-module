@@ -143,6 +143,34 @@ final class RelationServiceCest extends BaseCest
         $I->assertEquals(0, count($baskets));
     }
 
+    public function testGetInvalidBasketRelation(AcceptanceTester $I): void
+    {
+        $I->login(self::EXISTING_USERNAME, self::PASSWORD);
+
+        $I->sendGQLQuery(
+            'query {
+                customer {
+                    email
+                    basket(title: "_invalid_basket_id_") {
+                        id
+                    }
+                }
+            }'
+        );
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(1, $result['errors']);
+        $I->assertEquals($result['errors'][0]['message'], 'Basket "_invalid_basket_id_" not found for user "9119cc8cd9593c214be93ee558235f3c"');
+        $I->assertEquals([
+            'email'  => 'existinguser@oxid-esales.com',
+            'basket' => null,
+        ], $result['data']['customer']);
+    }
+
     private function queryInvoiceAddressRelation(AcceptanceTester $I): array
     {
         $I->sendGQLQuery('query {

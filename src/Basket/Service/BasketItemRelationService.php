@@ -9,7 +9,9 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Basket\Service;
 
+use GraphQL\Error\Error;
 use OxidEsales\GraphQL\Base\Exception\InvalidLogin;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Basket\DataType\BasketItem;
 use OxidEsales\GraphQL\Storefront\Product\DataType\Product;
 use OxidEsales\GraphQL\Storefront\Product\Exception\ProductNotFound;
@@ -43,6 +45,7 @@ final class BasketItemRelationService
                 (string) $basketItemModel->getFieldData('oxartid')
             );
         } catch (ProductNotFound | InvalidLogin $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
         }
 
         return null;

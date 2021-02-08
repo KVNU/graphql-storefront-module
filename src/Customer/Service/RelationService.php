@@ -9,12 +9,15 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Customer\Service;
 
+use GraphQL\Error\Error;
 use OxidEsales\GraphQL\Base\DataType\IDFilter;
 use OxidEsales\GraphQL\Base\DataType\PaginationFilter;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Address\DataType\DeliveryAddress;
 use OxidEsales\GraphQL\Storefront\Address\DataType\InvoiceAddress as InvoiceAddressDataType;
 use OxidEsales\GraphQL\Storefront\Address\Service\InvoiceAddress as InvoiceAddressService;
 use OxidEsales\GraphQL\Storefront\Basket\DataType\Basket as BasketDataType;
+use OxidEsales\GraphQL\Storefront\Basket\Exception\BasketNotFound;
 use OxidEsales\GraphQL\Storefront\Basket\Service\Basket as BasketService;
 use OxidEsales\GraphQL\Storefront\Customer\DataType\Customer as CustomerDataType;
 use OxidEsales\GraphQL\Storefront\Customer\Infrastructure\Customer as CustomerInfrastructure;
@@ -96,6 +99,7 @@ final class RelationService
         try {
             return $this->newsletterStatusService->newsletterStatus();
         } catch (NewsletterStatusNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
         }
 
         return null;
@@ -122,9 +126,15 @@ final class RelationService
     /**
      * @Field()
      */
-    public function getBasket(CustomerDataType $customer, string $title): BasketDataType
+    public function getBasket(CustomerDataType $customer, string $title): ?BasketDataType
     {
-        return $this->basketService->basketByOwnerAndTitle($customer, $title);
+        try {
+            return $this->basketService->basketByOwnerAndTitle($customer, $title);
+        } catch (BasketNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
+        }
+
+        return null;
     }
 
     /**

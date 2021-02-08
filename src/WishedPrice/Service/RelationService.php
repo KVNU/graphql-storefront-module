@@ -9,6 +9,8 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\WishedPrice\Service;
 
+use GraphQL\Error\Error;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Currency\DataType\Currency;
 use OxidEsales\GraphQL\Storefront\Product\DataType\Product;
 use OxidEsales\GraphQL\Storefront\Product\Service\Product as ProductService;
@@ -54,6 +56,7 @@ final class RelationService
         try {
             return $this->inquirerService->inquirer((string) $wishedPrice->getInquirerId());
         } catch (InquirerNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
         }
 
         return null;
@@ -62,11 +65,17 @@ final class RelationService
     /**
      * @Field()
      */
-    public function getProduct(WishedPrice $wishedPrice): Product
+    public function getProduct(WishedPrice $wishedPrice): ?Product
     {
-        return $this->productService->product(
-            (string) $wishedPrice->getProductId()
-        );
+        try {
+            return $this->productService->product(
+                (string) $wishedPrice->getProductId()
+            );
+        } catch (InquirerNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
+
+            return null;
+        }
     }
 
     /**

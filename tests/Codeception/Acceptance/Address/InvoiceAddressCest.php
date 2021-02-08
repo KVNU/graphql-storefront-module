@@ -22,6 +22,8 @@ final class InvoiceAddressCest extends BaseCest
 {
     private const USERNAME = 'dodo@oxid-esales.com';
 
+    private const OTHER_USERNAME = 'user@oxid-esales.com';
+
     private const PASSWORD = 'useruser';
 
     private const USER_OXID = 'e7af1c3b786fd02906ccd75698f4e6b9';
@@ -381,6 +383,37 @@ final class InvoiceAddressCest extends BaseCest
         $I->assertContains($expected, $result['errors'][0]['message']);
     }
 
+    public function testInvoiceAddressInvalidCountry(AcceptanceTester $I): void
+    {
+        $this->prepareCustomerInvoiceAddressTestData($I);
+
+        $I->login(self::OTHER_USERNAME, self::PASSWORD);
+
+        $I->sendGQLQuery('query {
+            customerInvoiceAddress {
+                firstName
+                country {
+                  id
+                }
+            }
+        }');
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(1, $result['errors']);
+        $I->assertSame($result['errors'][0]['message'], 'Country was not found by id: _invalid_country_id');
+        $I->assertSame(
+            $result['data']['customerInvoiceAddress'],
+            [
+                'firstName' => 'Marc',
+                'country'   => null,
+            ]
+        );
+    }
+
     protected function customerInvoiceAddressPartialProvider(): array
     {
         return [
@@ -577,5 +610,18 @@ final class InvoiceAddressCest extends BaseCest
                 ],
             ],
         ];
+    }
+
+    private function prepareCustomerInvoiceAddressTestData(AcceptanceTester $I): void
+    {
+        $I->updateInDatabase(
+            'oxuser',
+            [
+                'OXCOUNTRYID'     => '_invalid_country_id',
+            ],
+            [
+                'OXID' => 'e7af1c3b786fd02906ccd75698f4e6b9',
+            ]
+        );
     }
 }

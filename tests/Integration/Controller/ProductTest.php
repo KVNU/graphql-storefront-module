@@ -1764,6 +1764,89 @@ final class ProductTest extends TokenTestCase
         );
     }
 
+    public function testProductListInvalidReviewer(): void
+    {
+        $result = $this->query('query {
+            products(filter: {
+                title: {
+                  contains: "Kuyichi"
+                }
+              }) {
+                id
+                reviews {
+                    id
+                    reviewer {
+                        firstName
+                    }
+                }
+            }
+        }');
+
+        $this->assertResponseStatus(
+            404,
+            $result
+        );
+
+        $this->assertCount(
+            10,
+            $result['body']['data']['products']
+        );
+
+        $this->assertCount(1, $result['body']['errors']);
+        $this->assertSame($result['body']['errors'][0]['message'], 'Reviewer was not found by id: _invalid_id_');
+        $this->assertSame($result['body']['data']['products'][0], [
+            'id'      => self::ACTIVE_PRODUCT_WITH_VARIANTS,
+            'reviews' => [
+                [
+                    'id'       => '_test_invalid_reviewer',
+                    'reviewer' => null,
+                ], [
+                    'id'       => 'e012b75c1cb5da36c3f5b1769a5cc4c4',
+                    'reviewer' => [
+                        'firstName' => 'Marc',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testProductInvalidReviewer(): void
+    {
+        $result = $this->query('query {
+            product(id: "' . self::ACTIVE_PRODUCT_WITH_VARIANTS . '") {
+                id
+                reviews {
+                    id
+                    reviewer {
+                        firstName
+                    }
+                }
+            }
+        }');
+
+        $this->assertResponseStatus(
+            404,
+            $result
+        );
+
+        $this->assertCount(1, $result['body']['errors']);
+        $this->assertSame($result['body']['errors'][0]['message'], 'Reviewer was not found by id: _invalid_id_');
+        $this->assertSame($result['body']['data']['product'], [
+            'id'      => self::ACTIVE_PRODUCT_WITH_VARIANTS,
+            'reviews' => [
+                [
+                    'id'       => '_test_invalid_reviewer',
+                    'reviewer' => null,
+                ], [
+                    'id'       => 'e012b75c1cb5da36c3f5b1769a5cc4c4',
+                    'reviewer' => [
+                        'firstName' => 'Marc',
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     private function assertArraySameNonAssociative(array $expected, array $actual): void
     {
         $this->assertSame(sort($expected), sort($actual));

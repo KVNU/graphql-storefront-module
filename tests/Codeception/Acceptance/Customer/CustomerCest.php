@@ -51,6 +51,50 @@ final class CustomerCest extends BaseCest
         );
     }
 
+    public function customerInvalidCountry(AcceptanceTester $I): void
+    {
+        $this->prepareCustomerTestData($I);
+
+        $I->login(self::USERNAME, self::PASSWORD);
+
+        $I->sendGQLQuery(
+            'query {
+                customer {
+                   id
+                   deliveryAddresses {
+                        id
+                        country {
+                            id
+                        }
+                   }
+                }
+            }'
+        );
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(1, $result['errors']);
+        $I->assertEquals($result['errors'][0]['message'], 'Country was not found by id: _invalid_country_id');
+        $I->assertEquals([
+            [
+                'id'      => 'test_delivery_address',
+                'country' => [
+                    'id' => 'a7c40f631fc920687.20179984',
+                ],
+            ], [
+                'id'      => 'test_delivery_address_2',
+                'country' => [
+                    'id' => 'a7c40f6320aeb2ec2.72885259',
+                ],
+            ], [
+                'id'      => 'test_delivery_address_3',
+                'country' => null,
+            ],
+        ], $result['data']['customer']['deliveryAddresses']);
+    }
+
     public function testCustomerForNotLoggedInUser(AcceptanceTester $I): void
     {
         $I->sendGQLQuery(
@@ -120,7 +164,7 @@ final class CustomerCest extends BaseCest
         }'
         );
 
-        $I->seeResponseCodeIs(HttpCode::OK);
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
         $I->seeResponseIsJson();
         $result = $I->grabJsonResponseAsArray();
 
@@ -536,6 +580,19 @@ final class CustomerCest extends BaseCest
             ],
             [
                 'OXID' => self::SUBSCRIPTION_ID,
+            ]
+        );
+    }
+
+    private function prepareCustomerTestData(AcceptanceTester $I): void
+    {
+        $I->haveInDatabase(
+            'oxaddress',
+            [
+                'OXID'            => 'test_delivery_address_3',
+                'OXUSERID'        => self::USER_OXID,
+                'OXADDRESSUSERID' => '',
+                'OXCOUNTRYID'     => '_invalid_country_id',
             ]
         );
     }

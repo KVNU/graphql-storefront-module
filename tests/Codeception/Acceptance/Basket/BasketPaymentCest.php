@@ -33,6 +33,8 @@ final class BasketPaymentCest extends BaseCest
 
     private const BASKET_WITHOUT_PAYMENT_ID = 'basket_user_3';
 
+    private const BASKET_WITH_INVALID_PAYMENT_ID = '_test_basket_invalid';
+
     private const PAYMENT_ID = 'oxiddebitnote';
 
     public function _after(AcceptanceTester $I): void
@@ -41,12 +43,15 @@ final class BasketPaymentCest extends BaseCest
     }
 
     /**
+     * @group new
+     *
      * @dataProvider basketPaymentProvider
      */
     public function getBasketPayment(AcceptanceTester $I, Example $data): void
     {
         $basketId  = $data['basketId'];
         $paymentId = $data['paymentId'];
+        $error     = $data['error'];
 
         $I->login(self::USERNAME, self::PASSWORD);
 
@@ -59,7 +64,7 @@ final class BasketPaymentCest extends BaseCest
             }
         }');
 
-        $I->seeResponseCodeIs(HttpCode::OK);
+        $I->seeResponseCodeIs($data['expectedStatus']);
         $I->seeResponseIsJson();
 
         $result = $I->grabJsonResponseAsArray();
@@ -69,6 +74,11 @@ final class BasketPaymentCest extends BaseCest
             $I->assertSame(self::PAYMENT_ID, $basket['payment']['id']);
         } else {
             $I->assertNull($basket['payment']);
+        }
+
+        if ($error !== null) {
+            $I->assertCount(1, $result['errors']);
+            $I->assertSame($result['errors'][0]['message'], $error);
         }
     }
 
@@ -242,12 +252,22 @@ final class BasketPaymentCest extends BaseCest
     {
         return [
             [
-                'basketId'  => self::BASKET_WITH_PAYMENT_ID,
-                'paymentId' => self::PAYMENT_ID,
+                'basketId'       => self::BASKET_WITH_PAYMENT_ID,
+                'paymentId'      => self::PAYMENT_ID,
+                'expectedStatus' => HttpCode::OK,
+                'error'          => null,
             ],
             [
-                'basketId'  => self::BASKET_WITHOUT_PAYMENT_ID,
-                'paymentId' => null,
+                'basketId'       => self::BASKET_WITHOUT_PAYMENT_ID,
+                'paymentId'      => null,
+                'expectedStatus' => HttpCode::OK,
+                'error'          => null,
+            ],
+            [
+                'basketId'       => self::BASKET_WITH_INVALID_PAYMENT_ID,
+                'paymentId'      => null,
+                'expectedStatus' => HttpCode::BAD_REQUEST,
+                'error'          => 'Payment was not found by id: _invalid_payment_id',
             ],
         ];
     }

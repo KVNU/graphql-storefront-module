@@ -24,6 +24,8 @@ final class DeliveryAddressCest extends BaseCest
 
     private const PASSWORD = 'useruser';
 
+    private const USER_OXID = 'e7af1c3b786fd02906ccd75698f4e6b9';
+
     private const DIFFERENT_USERNAME = 'differentuser@oxid-esales.com';
 
     private const DIFFERENT_PASSWORD = 'useruser';
@@ -347,6 +349,53 @@ final class DeliveryAddressCest extends BaseCest
         $I->seeResponseCodeIs(HttpCode::OK);
     }
 
+    public function testDeliveryAddressesInvalidCountry(AcceptanceTester $I): void
+    {
+        $this->prepareCustomerDeliveryAddressTestData($I);
+
+        $I->login(self::USERNAME, self::PASSWORD);
+
+        $I->sendGQLQuery('query {
+            customerDeliveryAddresses {
+                id
+                country {
+                  id
+                }
+            }
+        }');
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(
+            3,
+            $result['data']['customerDeliveryAddresses']
+        );
+        $I->assertCount(1, $result['errors']);
+        $I->assertSame($result['errors'][0]['message'], 'Country was not found by id: _invalid_country_id');
+        $I->assertSame(
+            $result['data']['customerDeliveryAddresses'],
+            [
+                [
+                    'id'      => 'test_delivery_address',
+                    'country' => [
+                        'id' => 'a7c40f631fc920687.20179984',
+                    ],
+                ], [
+                    'id'      => 'test_delivery_address_2',
+                    'country' => [
+                        'id' => 'a7c40f6320aeb2ec2.72885259',
+                    ],
+                ], [
+                    'id'      => 'test_delivery_address_3',
+                    'country' => null,
+                ],
+            ]
+        );
+    }
+
     protected function providerRequiredFields()
     {
         return [
@@ -423,5 +472,18 @@ final class DeliveryAddressCest extends BaseCest
         $I->seeResponseIsJson();
 
         return $I->grabJsonResponseAsArray();
+    }
+
+    private function prepareCustomerDeliveryAddressTestData(AcceptanceTester $I): void
+    {
+        $I->haveInDatabase(
+            'oxaddress',
+            [
+                'OXID'            => 'test_delivery_address_3',
+                'OXUSERID'        => self::USER_OXID,
+                'OXADDRESSUSERID' => '',
+                'OXCOUNTRYID'     => '_invalid_country_id',
+            ]
+        );
     }
 }

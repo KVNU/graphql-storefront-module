@@ -469,6 +469,49 @@ final class WishedPriceCest extends BaseCest
         $I->assertEquals($expectedWishedPrice['currency']['name'], $savedWishedPrice->getFieldData('OXCURRENCY'));
     }
 
+    public function testWishedPriceListInvalidProduct(AcceptanceTester $I): void
+    {
+        $I->login(self::USERNAME, self::PASSWORD);
+
+        $I->sendGQLQuery('query {
+            wishedPrices {
+                id
+                product {
+                    id
+                }
+            }
+        }');
+
+        $I->seeResponseCodeIs(HttpCode::UNAUTHORIZED);
+        $I->seeResponseIsJson();
+
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(2, $result['errors']);
+        $I->assertEquals($result['errors'][0]['message'], 'Unauthorized');
+        $I->assertEquals($result['errors'][1]['message'], 'Product was not found by id: does_not_exist');
+        $I->assertCount(8, $result['data']['wishedPrices']);
+        $I->assertSame(
+            array_slice($result['data']['wishedPrices'], 2, 3),
+            [
+                [
+                    'id'      => '_test_wished_price_3_',
+                    'product' => [
+                        'id' => '_test_product_wished_price_3_',
+                    ],
+                ],
+                [
+                    'id'      => '_test_wished_price_4_',
+                    'product' => null,
+                ],
+                [
+                    'id'      => '_test_wished_price_5_',
+                    'product' => null,
+                ],
+            ]
+        );
+    }
+
     public function testWishedPriceSetFailsToSendNotification(AcceptanceTester $I): void
     {
         $this->setShopOrderMail($I, '');

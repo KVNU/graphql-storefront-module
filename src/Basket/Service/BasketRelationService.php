@@ -9,8 +9,10 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Basket\Service;
 
+use GraphQL\Error\Error;
 use OxidEsales\GraphQL\Base\DataType\IDFilter;
 use OxidEsales\GraphQL\Base\DataType\PaginationFilter;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Address\DataType\DeliveryAddress;
 use OxidEsales\GraphQL\Storefront\Address\Exception\DeliveryAddressNotFound;
 use OxidEsales\GraphQL\Storefront\Address\Service\DeliveryAddress as DeliveryAddressService;
@@ -128,6 +130,8 @@ final class BasketRelationService
         try {
             $deliveryAddress = $this->deliveryAddressService->getDeliveryAddress($addressId);
         } catch (DeliveryAddressNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
+
             $deliveryAddress = null;
         }
 
@@ -150,6 +154,8 @@ final class BasketRelationService
         try {
             $payment = $this->paymentService->payment($paymentId);
         } catch (PaymentNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
+
             $payment = null;
         }
 
@@ -172,6 +178,8 @@ final class BasketRelationService
         try {
             $deliveryMethod = $this->deliveryMethodService->getDeliveryMethod($deliveryMethodId);
         } catch (DeliveryMethodNotFound $e) {
+            GraphQLQueryHandler::addError(new Error($e->getMessage()));
+
             $deliveryMethod = null;
         }
 

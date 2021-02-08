@@ -68,7 +68,9 @@ INSERT INTO `oxreviews` (`OXID`, `OXACTIVE`, `OXOBJECTID`, `OXTYPE`, `OXTEXT`, `
 ('_test_real_product_2', 1, '058e613db53d782adfc9f2ccb43c45fe', 'oxarticle', 'example review for product 2', 'e7af1c3b786fd02906ccd75698f4e6b9', 4, 0),
 ('_test_real_product_inactive', 0, '058e613db53d782adfc9f2ccb43c45fe', 'oxarticle', 'example review for product inactive', 'e7af1c3b786fd02906ccd75698f4e6b9', 5, 0),
 ('_test_lang_0_review', 1, 'notreal', 'oxarticle', 'example lang 0 review', 'e7af1c3b786fd02906ccd75698f4e6b9', 5, 0),
-('_test_lang_1_review', 1, 'notreal', 'oxarticle', 'example lang 1 review', 'e7af1c3b786fd02906ccd75698f4e6b9', 5, 1);
+('_test_lang_1_review', 1, 'notreal', 'oxarticle', 'example lang 1 review', 'e7af1c3b786fd02906ccd75698f4e6b9', 5, 1),
+('_test_invalid_reviewer',	1,	'531b537118f5f4d7a427cdb825440922',	'oxarticle',	'Product review',	'_invalid_id_',	0,	0),
+('e012b75c1cb5da36c3f5b1769a5cc4c4',	1,	'531b537118f5f4d7a427cdb825440922',	'oxarticle',	'Product review',	'e7af1c3b786fd02906ccd75698f4e6b9',	0,	0);
 
 UPDATE `oxlinks` SET `OXACTIVE` = 0 WHERE `OXID` = 'ce342e8acb69f1748.25672556';
 INSERT INTO `oxlinks` (`OXID`, `OXSHOPID`, `OXACTIVE`, `OXURL`, `OXURLDESC`, `OXURLDESC_1`, `OXURLDESC_2`, `OXURLDESC_3`, `OXINSERT`) VALUES

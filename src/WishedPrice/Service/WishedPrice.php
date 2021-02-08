@@ -84,6 +84,14 @@ final class WishedPrice
         /** Check disable wished price flag */
         $product = $this->wishedPriceRelationService->getProduct($wishedPrice);
 
+        if ($product === null) {
+            if ($this->authorizationService->isAllowed('VIEW_WISHED_PRICES')) {
+                return $wishedPrice;
+            }
+
+            throw WishedPriceNotFound::byId($id);
+        }
+
         if (!$product->wishedPriceEnabled() && !$this->authorizationService->isAllowed('VIEW_WISHED_PRICES')) {
             throw WishedPriceNotFound::byId($id);
         }

@@ -264,6 +264,47 @@ final class BasketCest extends BaseCest
         $this->assertCost($I, $result['data']['basket']['cost'], 0.0);
     }
 
+    public function testBasketInvalidProduct(AcceptanceTester $I): void
+    {
+        $I->sendGQLQuery(
+            'query{
+                basket(id: "_test_basket_invalid") {
+                    id
+                    items {
+                        id
+                        product {
+                            id
+                        }
+                    }
+                }
+            }'
+        );
+
+        $I->seeResponseCodeIs(HttpCode::BAD_REQUEST);
+        $I->seeResponseIsJson();
+        $result = $I->grabJsonResponseAsArray();
+
+        $I->assertCount(1, $result['errors']);
+        $I->assertSame($result['errors'][0]['message'], 'Product was not found by id: _test_invalid_product_for_basket');
+        $I->assertSame(
+            $result['data']['basket'],
+            [
+                'id'    => '_test_basket_invalid',
+                'items' => [
+                    [
+                        'id'      => '_test_basket_1_invalid_product',
+                        'product' => null,
+                    ], [
+                        'id'      => '_test_basket_1_valid_product',
+                        'product' => [
+                            'id' => '_test_product_for_basket',
+                        ],
+                    ],
+                ],
+            ]
+        );
+    }
+
     protected function boolDataProvider(): array
     {
         return [

@@ -9,9 +9,12 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Address\Service;
 
+use GraphQL\Error\Error;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Address\DataType\InvoiceAddress;
 use OxidEsales\GraphQL\Storefront\Country\DataType\Country;
 use OxidEsales\GraphQL\Storefront\Country\DataType\State;
+use OxidEsales\GraphQL\Storefront\Country\Exception\CountryNotFound;
 use OxidEsales\GraphQL\Storefront\Country\Exception\StateNotFound;
 use OxidEsales\GraphQL\Storefront\Country\Service\Country as CountryService;
 use OxidEsales\GraphQL\Storefront\Country\Service\State as StateService;
@@ -40,11 +43,19 @@ final class InvoiceAddressRelations
     /**
      * @Field()
      */
-    public function country(InvoiceAddress $invoiceAddress): Country
+    public function country(InvoiceAddress $invoiceAddress): ?Country
     {
-        return $this->countryService->country(
-            (string) $invoiceAddress->countryId()
-        );
+        try {
+            return $this->countryService->country(
+                (string) $invoiceAddress->countryId()
+            );
+        } catch (CountryNotFound $e) {
+            if (strlen((string) $invoiceAddress->countryId()) > 0) {
+                GraphQLQueryHandler::addError(new Error($e->getMessage()));
+            }
+
+            return null;
+        }
     }
 
     /**
@@ -57,6 +68,10 @@ final class InvoiceAddressRelations
                 (string) $invoiceAddress->stateId()
             );
         } catch (StateNotFound $e) {
+            if (strlen((string) $invoiceAddress->stateId()) > 0) {
+                GraphQLQueryHandler::addError(new Error($e->getMessage()));
+            }
+
             return null;
         }
     }

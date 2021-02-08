@@ -9,9 +9,12 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Address\Service;
 
+use GraphQL\Error\Error;
+use OxidEsales\GraphQL\Base\Framework\GraphQLQueryHandler;
 use OxidEsales\GraphQL\Storefront\Address\DataType\DeliveryAddress;
 use OxidEsales\GraphQL\Storefront\Country\DataType\Country;
 use OxidEsales\GraphQL\Storefront\Country\DataType\State;
+use OxidEsales\GraphQL\Storefront\Country\Exception\CountryNotFound;
 use OxidEsales\GraphQL\Storefront\Country\Exception\StateNotFound;
 use OxidEsales\GraphQL\Storefront\Country\Service\Country as CountryService;
 use OxidEsales\GraphQL\Storefront\Country\Service\State as StateService;
@@ -40,11 +43,19 @@ final class DeliveryAddressRelations
     /**
      * @Field()
      */
-    public function country(DeliveryAddress $deliveryAddress): Country
+    public function country(DeliveryAddress $deliveryAddress): ?Country
     {
-        return $this->countryService->country(
-            (string) $deliveryAddress->countryId()
-        );
+        try {
+            return $this->countryService->country(
+                (string) $deliveryAddress->countryId()
+            );
+        } catch (CountryNotFound $e) {
+            if (strlen((string) $deliveryAddress->countryId()) > 0) {
+                GraphQLQueryHandler::addError(new Error($e->getMessage()));
+            }
+
+            return null;
+        }
     }
 
     /**
@@ -57,6 +68,10 @@ final class DeliveryAddressRelations
                 (string) $deliveryAddress->stateId()
             );
         } catch (StateNotFound $e) {
+            if (strlen((string) $deliveryAddress->stateId()) > 0) {
+                GraphQLQueryHandler::addError(new Error($e->getMessage()));
+            }
+
             return null;
         }
     }

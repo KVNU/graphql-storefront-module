@@ -37,7 +37,7 @@ final class BasketsMultishopCest extends MultishopBaseCest
     }
 
     /**
-     * @dataProvider shopDataProvider
+     * @dataProvider shopDataProviderMallUser
      */
     public function testGetBasketsPerShopsWithMallUser(AcceptanceTester $I, Example $data): void
     {
@@ -45,7 +45,7 @@ final class BasketsMultishopCest extends MultishopBaseCest
         $I->updateConfigInDatabaseForShops('blMallUsers', true, 'bool', [1, 2]);
 
         $response = $this->basketsQuery($I, self::USERNAME, $shopId);
-        $I->seeResponseCodeIs(HttpCode::OK);
+        $I->seeResponseCodeIs($data[2]);
 
         $baskets = $response['data']['baskets'];
         $I->assertEquals(5, count($baskets));
@@ -56,6 +56,14 @@ final class BasketsMultishopCest extends MultishopBaseCest
         return [
             [1, 4],
             [2, 1],
+        ];
+    }
+
+    protected function shopDataProviderMallUser(): array
+    {
+        return [
+            [1, 4, 200],
+            [2, 1, 400],
         ];
     }
 

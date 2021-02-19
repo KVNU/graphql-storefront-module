@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OxidEsales\GraphQL\Storefront\Basket\Service;
 
+use OxidEsales\GraphQL\Base\Exception\InvalidToken;
 use OxidEsales\GraphQL\Base\Service\Authentication;
 use OxidEsales\GraphQL\Storefront\Basket\DataType\Basket as BasketDataType;
 use OxidEsales\GraphQL\Storefront\Basket\Exception\BasketExists;
@@ -49,6 +50,8 @@ final class BasketInput
      */
     public function fromUserInput(string $title, bool $public = false): BasketDataType
     {
+        $this->authentication->loggedOrLoggedAnonymous();
+
         if ($this->doesBasketExist($title)) {
             throw BasketExists::byTitle($title);
         }

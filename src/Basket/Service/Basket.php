@@ -231,6 +231,8 @@ final class Basket
 
     public function addProduct(string $basketId, string $productId, float $amount): BasketDataType
     {
+        $this->authenticationService->loggedOrLoggedAnonymous();
+
         $basket = $this->getAuthenticatedCustomerBasket($basketId);
 
         $this->productService->product($productId);
@@ -242,6 +244,8 @@ final class Basket
 
     public function removeProduct(string $basketId, string $productId, float $amount): BasketDataType
     {
+        $this->authenticationService->loggedOrLoggedAnonymous();
+
         $basket = $this->getAuthenticatedCustomerBasket($basketId);
 
         $this->basketInfraService->removeProduct($basket, $productId, $amount);

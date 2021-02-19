@@ -18,7 +18,6 @@ use OxidEsales\GraphQL\Storefront\Payment\DataType\BasketPayment;
 use TheCodingMachine\GraphQLite\Annotations\Logged;
 use TheCodingMachine\GraphQLite\Annotations\Mutation;
 use TheCodingMachine\GraphQLite\Annotations\Query;
-use TheCodingMachine\GraphQLite\Annotations\Right;
 use TheCodingMachine\GraphQLite\Types\ID;
 
 final class Basket
@@ -47,8 +46,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
-     * @Right("ADD_PRODUCT_TO_BASKET")
      */
     public function basketAddProduct(string $basketId, string $productId, float $amount): BasketDataType
     {
@@ -57,8 +54,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
-     * @Right("REMOVE_BASKET_PRODUCT")
      */
     public function basketRemoveProduct(string $basketId, string $productId, int $amount): BasketDataType
     {
@@ -67,8 +62,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
-     * @Right("CREATE_BASKET")
      */
     public function basketCreate(BasketDataType $basket): BasketDataType
     {
@@ -80,7 +73,6 @@ final class Basket
     /**
      * @Mutation()
      * @Logged()
-     * @Right("REMOVE_BASKET")
      */
     public function basketRemove(string $id): bool
     {
@@ -190,7 +182,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
      */
     public function placeOrder(ID $basketId, ?bool $confirmTermsAndConditions = null): OrderDataType
     {

@@ -63,6 +63,7 @@ final class Customer
             //todo: move to infrastructure
             $user = oxNew(User::class);
             $user->setId($id);
+            $user->load($id);
 
             return new CustomerDataType($user);
         }

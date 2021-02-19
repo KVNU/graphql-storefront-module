@@ -88,6 +88,7 @@ final class Customer
         /** @var EshopUserModel $user */
         $user = oxNew(EshopUserModel::class);
         $user->setId($id);
+        $user->loadByAnonymousId($id);
 
         return new CustomerDataType($user);
     }

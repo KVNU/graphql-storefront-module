@@ -43,4 +43,15 @@ class User extends User_parent
 
         return true;
     }
+
+    public function setAnonymousUserId(string $userId): bool
+    {
+        $this->assign(
+            [
+                'OEGRAPHQL_ANON_USERID' => $userId,
+            ]
+        );
+
+        return $this->save();
+    }
 }

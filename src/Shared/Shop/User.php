@@ -52,6 +52,6 @@ class User extends User_parent
             ]
         );
 
-        return $this->save();
+        return (bool) $this->save();
     }
 }

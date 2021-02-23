@@ -303,6 +303,8 @@ final class Basket
 
     public function addVoucher(string $basketId, string $voucherNumber): BasketDataType
     {
+        $this->authenticationService->loggedOrLoggedAnonymous();
+
         $basket = $this->basketRepository->getBasketById($basketId);
 
         if (!$basket->belongsToUser($this->authenticationService->getUserId())) {
@@ -316,6 +318,8 @@ final class Basket
 
     public function removeVoucher(string $basketId, string $voucherId): BasketDataType
     {
+        $this->authenticationService->loggedOrLoggedAnonymous();
+
         $basket = $this->basketRepository->getBasketById($basketId);
 
         if (!$basket->belongsToUser($this->authenticationService->getUserId())) {

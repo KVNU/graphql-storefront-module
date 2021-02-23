@@ -113,7 +113,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
      */
     public function basketAddVoucher(string $basketId, string $voucherNumber): BasketDataType
     {
@@ -122,7 +121,6 @@ final class Basket
 
     /**
      * @Mutation()
-     * @Logged()
      */
     public function basketRemoveVoucher(string $basketId, string $voucherId): BasketDataType
     {

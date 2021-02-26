@@ -103,7 +103,8 @@ final class Customer
         $this->eventDispatcher->dispatch(
             CreateAnonymousUser::NAME,
             new CreateAnonymousUser(
-                $user
+                $user,
+                $id
             )
         );
 

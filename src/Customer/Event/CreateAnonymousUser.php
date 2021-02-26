@@ -19,10 +19,13 @@ final class CreateAnonymousUser extends Event
     /** @var EshopUserModel */
     private $user;
 
+    /** @var string */
+    private $id;
+
     /**
      * CreateAnonymousUser constructor.
      */
-    public function __construct(EshopUserModel $user)
+    public function __construct(EshopUserModel $user, string $id)
     {
         $this->user = $user;
     }
@@ -30,5 +33,10 @@ final class CreateAnonymousUser extends Event
     public function getUser(): EshopUserModel
     {
         return $this->user;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
     }
 }

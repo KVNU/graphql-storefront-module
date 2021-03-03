@@ -19,6 +19,8 @@ use OxidEsales\GraphQL\Storefront\Product\DataType\ProductFilterList;
 use OxidEsales\GraphQL\Storefront\Product\Exception\ProductNotFound;
 use OxidEsales\GraphQL\Storefront\Shared\Infrastructure\Repository;
 
+use OxidEsales\EshopCommunity\Internal\Framework\Database\QueryBuilderFactoryInterface;
+
 final class Product
 {
     /** @var Repository */
@@ -27,12 +29,66 @@ final class Product
     /** @var Authorization */
     private $authorizationService;
 
+    /** @var QueryBuilderFactoryInterface */
+    private $queryBuilderFactory;
+
     public function __construct(
         Repository $repository,
-        Authorization $authorizationService
-    ) {
-        $this->repository           = $repository;
+        Authorization $authorizationService,
+        QueryBuilderFactoryInterface $queryBuilderFactory
+    )
+    {
+        $this->repository = $repository;
         $this->authorizationService = $authorizationService;
+        $this->queryBuilderFactory = $queryBuilderFactory;
+    }
+
+    /**
+     * @throws InvalidLogin
+     * @throws InvalidToken
+     */
+    public function saveProduct(ProductDataType $product): bool
+    {
+        return $this->repository->saveModel($product->getEshopModel());
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function getIdBySku(string $sku): string
+    {
+        $queryBuilder = $this->queryBuilderFactory->create();
+
+        $queryBuilder
+            ->select('oxid')
+            ->from('oxarticles')
+            ->where('oxartnum = ?')
+            ->setParameter(0, $sku)
+            ->setMaxResults(1);
+
+        return $queryBuilder->execute()->fetchColumn(0);
+    }
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function setCategory(string $productId, string $categoryId): bool
+    {
+        $queryBuilder = $this->queryBuilderFactory->create();
+
+        $queryBuilder
+            ->insert('oxobject2category')
+            ->values([
+                'oxobjectid' => '?',
+                'oxcatnid' => '?',
+                //'oxpos' => '?' // Sorting
+            ])
+            ->setValue(0, $productId)
+            ->setValue(1, $categoryId);
+
+        $queryBuilder->execute();
+
+        return true;
     }
 
     /**
@@ -66,7 +122,8 @@ final class Product
         ProductFilterList $filter,
         ?PaginationFilter $pagination,
         Sorting $sort
-    ): array {
+    ): array
+    {
         // In case user has VIEW_INACTIVE_PRODUCT permissions
         // return all products including inactive ones
         if ($this->authorizationService->isAllowed('VIEW_INACTIVE_PRODUCT')) {
